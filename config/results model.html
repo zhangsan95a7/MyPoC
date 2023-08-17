@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+  }
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .item {
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+  .link {
+    color: #007bff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  .arrow {
+    font-size: 20px;
+    margin-right: 10px;
+    transform-origin: center;
+    transition: transform 0.3s;
+	user-select: none;
+  }
+  .details {
+	color: #FFA500;
+    margin-top: 10px;
+    padding-left: 30px;
+	cursor: pointer;
+  }
+  .btn {
+    color: #FFA500;
+    border: none;
+    padding: 2px 8px;
+    cursor: pointer;
+	background-color: #ffffff;
+	transform-origin: center;
+	transition: transform 0.3s;
+	user-select: none;
+  }
+  .details-container {
+	color: #FFA500;
+    display: none;
+    margin-top: 10px;
+    padding-left: 30px;
+  }
+  .description-box {
+    color: #666666;
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+    display: none;
+    vertical-align: top;
+  }
+</style>
+
+<script>
+  function toggleAllDetails(element) {
+    var nextelement = element.nextElementSibling;
+    var arrow = element.querySelector('.arrow');
+    if (nextelement.style.display === 'none' || nextelement.style.display === '') {
+      nextelement.style.display = 'block';
+      arrow.style.transform = 'rotate(180deg)';
+    } else {
+      nextelement.style.display = 'none';
+      arrow.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  function togglebtn(element) {
+    var nextelement = element.nextElementSibling;
+    var btn = element.querySelector('.btn');
+    if (nextelement.style.display === 'none' || nextelement.style.display === '') {
+      nextelement.style.display = 'block';
+      btn.style.transform = 'rotate(180deg)';
+    } else {
+      nextelement.style.display = 'none';
+      btn.style.transform = 'rotate(0deg)';
+    }
+  }
+</script>
+</head>
+<body>
+
+<ul class="list">
+  
+  <li class="item">
+    <div class="link" onclick="toggleAllDetails(this)">
+      <span class="arrow">▼</span>
+      http://127.0.0.1:8080/
+    </div>
+    
+	<div class="details-container">
+        <div class="details" onclick="togglebtn(this)">
+          <span class="btn">▼</span>
+          RCE
+        </div>
+
+		<div class="description-box">
+		  <p>介绍：</p>
+		  <p>该漏洞是...</p>
+		  <br>
+		  <p>参考链接：</p>
+		  <p><a href="https://www.example.com" target="_blank">https://www.example.com</a></p>
+		</div>
+    </div>
+  </li>
+
+</ul>
+
+</body>
+</html>
