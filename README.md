@@ -44,7 +44,7 @@ python MyPoC.py -h
 
 - ##### --out-put
 
-  指定保存结果的文件类型，支持txt，html，excel，可同时输出多种类型，eg: --out-put=txt|html|excel
+  指定保存结果的文件类型，支持txt，html，excel，可同时输出多种类型，eg: --out-put="txt|html|excel"
 
   目前支持txt、html类型，excel待添加
 
@@ -64,7 +64,7 @@ MyPoC/model/model.py
 
 - ###### 编写
 
-  在MyPoC/poc目录下创建一个目录（必须与POC同名），
+  在MyPoC/poc目录下创建一个以POC名称命名的目录（必须与POC同名）
   
   将POC模板复制到MyPoC/poc/pocname/路径下进行编写，编写好的POC也放在该目录
 
@@ -94,4 +94,4 @@ MyPoC/model/model.py
 
 
 
-##### 免责声明，本代码仅用于学习，切勿用于其他非法用途，否则后果由使用者自负！！！
+##### 免责声明：本代码仅用于学习，切勿用于其他非法用途，否则后果由使用者自负！！！
