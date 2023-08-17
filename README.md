@@ -4,9 +4,11 @@
 
 
 
-还有更多的功能与POC等待开发，期待更多小伙伴的加入。
+还有更多的功能与POC等待开发，期待更多师傅们的加入。
 
 
+
+项目开始时间：2023年8月13日
 
 项目地址：https://github.com/zhangsan95a7/MyPoC
 
@@ -34,15 +36,9 @@ python MyPoC.py -h
 
 ## 待开发功能
 
-- ##### --poc-fuzz
-
-  批量测试，通过关键词匹配poc进行测试，支持多个关键词，eg: --poc-fuzz=OA|SQL 或 --poc-fuzz=all 进行全量POC测试
-
-
-
 - ##### --poc-update
 
-  更新POC库，预期：所有使用该框架的用户执行该参数后从项目中拉取本地没有的POC，并且将本地自创POC上传至项目POC库
+  更新POC库，预期：所有使用该框架的使用者执行该参数后，从项目中拉取本地没有的POC，并且将本地自创POC上传至项目POC库
 
 
 
@@ -50,7 +46,7 @@ python MyPoC.py -h
 
   指定保存结果的文件类型，支持txt，html，excel，可同时输出多种类型，eg: --out-put=txt|html|excel
 
-  目前仅支持txt类型，html和excel待添加
+  目前支持txt、html类型，excel待添加
 
 
 
@@ -68,7 +64,9 @@ MyPoC/model/model.py
 
 - ###### 编写
 
-  将模板复制到MyPoC/poc路径下进行编写，编写好的POC也放在该目录
+  在MyPoC/poc目录下创建一个目录（必须与POC同名），
+  
+  将POC模板复制到MyPoC/poc/pocname/路径下进行编写，编写好的POC也放在该目录
 
 
 
