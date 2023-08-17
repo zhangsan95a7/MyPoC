@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from lib.core import result_save
 import os
 import re
 import importlib
@@ -20,26 +21,55 @@ class MyPoC:
 	def __init__(self):
 		# 创建一个线程锁和计数器
 		self.progress_lock = threading.Lock()
-		self.current_count = 0
+		
+		# 已测试URL数量
+		self.current_target_count = 0
 
+		# 存在漏洞URL个数
 		self.vul_count = 0
-		self.results = []
+		
+		# 测试结果
+		self.results = {}
 
 
 	def get_pocs(self):
-		poc_files = os.listdir("./poc/")
 		pocs = []
-		for file_name in poc_files:
-			if os.path.isfile(os.path.join("./poc/", file_name)):
-				pocs.append(os.path.splitext(file_name)[0])
+		for dir_name in os.listdir("./poc/"):
+			if os.path.isdir(os.path.join("./poc/", dir_name)):
+				pocs.append(dir_name)
 
 		return pocs
 
 
+	def poc_laod(self):
+
+		poc = []
+
+		all_pocs = self.get_pocs()
+
+		if self.args.poc:
+			poc = [self.args.poc]
+
+		elif self.args.poc_fuzz == "all":
+			poc = all_pocs
+
+		else:
+			# 通过关键词匹配poc进行测试
+			for poc_keyword in self.args.poc_fuzz.split("|"):
+				for poc_tmp in all_pocs:
+					if any(re.finditer(poc_keyword, poc_tmp, re.IGNORECASE)) and poc_tmp not in poc:
+						poc.append(poc_tmp)
+
+		return poc
+
+
+	def poc_update(self):
+		print("功能待完善")
+
 
 	def poc_search(self,keyword):
 		# 搜索结果中被命中的关键词高亮显示
-		print("POC搜索结果:	关键词 "+keyword)
+		print(f"POC搜索结果:	关键词 {keyword}")
 		print("-----------------------------------")
 		pocs = self.get_pocs()
 		for poc in pocs:
@@ -61,7 +91,7 @@ class MyPoC:
 
 	def poc_show(self):
 		pocs = self.get_pocs()
-		print("POC列表:    总计 "+str(len(pocs)))
+		print(f"POC列表:    总计 {len(pocs)}")
 		print("-----------------------------------")
 		for poc in pocs:
 			print(poc)
@@ -74,15 +104,17 @@ class MyPoC:
 
 
 		# POC参数
-		poc.add_argument("-p", "--poc", dest="poc", help="指定POC名称，eg: -p 某某某RCE")
+		poc.add_argument("-p", "--poc", dest="poc", help="指定POC名称，eg: -p pocname")
 
-		poc.add_argument("--poc-search", dest="poc_search", help="搜索POC，eg: --poc-search=RCE")# 实现不区别大小写
+		poc.add_argument("--poc-search", dest="poc_search", help="模糊搜索POC，eg: --poc-search=RCE")# 实现不区分大小写
 
-		poc.add_argument("--poc-list", dest="poc_list", help="输出所有POC")
+		poc.add_argument("--poc-list", dest="poc_list", action="store_true", help="输出所有POC")
 
-		poc.add_argument("--poc-fuzz", dest="poc_fuzz", help="批量测试，通过关键词匹配poc进行测试，支持多个关键词，eg: --poc-fuzz=OA|SQL 或 --poc-fuzz=all 进行全量POC测试")
+		poc.add_argument("--poc-fuzz", dest="poc_fuzz", help='批量测试，通过关键词匹配poc进行测试，支持多个关键词，eg: --poc-fuzz="OA|SQL" 或 --poc-fuzz=all 进行全量POC测试')
 
-		poc.add_argument("--poc-update", dest="poc_update", help="更新POC库")
+		poc.add_argument("--poc-update", dest="poc_update", action="store_true", help="更新POC库")
+
+		poc.add_argument("--poc-info", dest="poc_info",  help='获取POC详情，eg: --poc-info="pocname"')
 
 
 		# Target参数
@@ -98,7 +130,7 @@ class MyPoC:
 
 		other.add_argument("--thread", dest="thread", type=int, help="设置最大线程数，默认为5，eg: --thread=10")
 
-		other.add_argument("--out-put", dest="filetype", help="指定保存结果的文件类型，支持txt，html，excel，可同时输出多种类型，eg: --out-put=txt|html|excel")
+		other.add_argument("--out-put", dest="filetype", help='指定保存结果的文件类型，支持txt，html，excel，可同时输出多种类型，eg: --out-put="txt|html|excel"')
 
 		other.add_argument("--proxy", dest="proxy", help='设置代理，eg: --proxy="http://127.0.0.1:8080"')
 
@@ -109,57 +141,25 @@ class MyPoC:
 		return parser.parse_args()
 
 
-	def payloading(self,poc,target,total):
+	def payloading(self,poc,target):
 
 		try:
-			vul = importlib.import_module("poc."+poc).payload(target=target)
+			vul, POC_RETURN = importlib.import_module("poc."+poc+"."+poc).payload(target=target)
 		except:
 			vul = False
 
 		with self.progress_lock:
 
-			self.current_count += 1
+			self.current_target_count += 1
 
 			if vul:
+
 				self.vul_count += 1
-				self.results.append({target:poc})
-				print("\033[0;31;40m[!]  Progress: "+str(self.current_count)+"/"+str(total)+"  vul: "+str(self.vul_count)+"  "+target+"   存在  "+poc+"\033[0m")
+				self.results[target][poc] = POC_RETURN
+				print(f"\033[0;31;40m[!]  Progress: {self.current_target_count}/{self.total}  vul: {self.vul_count}  {target}   存在  {poc}\033[0m")
 			
 			else:
-				print("[*]  Progress: "+str(self.current_count)+"/"+str(total)+"  vul: "+str(self.vul_count)+"  "+target+"   不存在  "+poc)
-
-
-	def result_save(self):
-		
-		print("\n正在保存...")
-
-		current_path = os.getcwd()
-		current_time = datetime.now().strftime("%Y-%m-%d %H-%M-%S").split(" ")
-
-		# 构建文件夹和文件路径
-		folder_path = os.path.join("results", current_time[0])
-		
-
-		# 创建文件夹（如果不存在）
-		os.makedirs(folder_path, exist_ok=True)
-
-		if "txt" in self.args.filetype:
-			
-			file_path = os.path.join(folder_path, f"{current_time[1]}.txt")
-			
-			results = [list(result.keys())[0] for result in self.results]
-
-			with open(file_path, "w") as file:
-				file.write("\n".join(results))
-			
-			print("测试结果已保存至: "+file_path+"  (txt类型只保存验证成功的URL)")
-
-
-		if "html" in self.args.filetype:
-			pass
-
-		if "excel" in self.args.filetype:
-			pass
+				print(f"[*]  Progress: {self.current_target_count}/{self.total}  vul: {self.vul_count}  {target}   不存在  {poc}")
 
 
 	def config_update(self,action):
@@ -190,14 +190,14 @@ class MyPoC:
 
 		self.args = self.get_args()
 
-		if not self.args.poc_search and not self.args.poc_list:
+		if not self.args.poc_search and not self.args.poc_list and not self.args.poc_update and not self.args.poc_info:
 
-			if not self.args.poc:
-				print("缺少 -p 参数")
+			if not self.args.poc and not self.args.poc_fuzz:
+				print("未指定POC")
 				return
 
 			if not self.args.url and not self.args.target_file:
-				print("缺少 -u 参数，或缺少 -f 参数")
+				print("未指定目标URL")
 				return
 
 			if self.args.url and self.args.target_file:
@@ -211,6 +211,22 @@ class MyPoC:
 			self.poc_show()
 			return
 
+		elif self.args.poc_update:
+			self.poc_update()
+			return
+
+		elif self.args.poc_info:
+			try:
+				
+				introduce, reference_link = importlib.import_module("poc."+self.args.poc_info+"."+self.args.poc_info).poc_description()
+				
+				print("介绍：\n{}\n\n参考链接：\n{}".format(introduce, '\n'.join(reference_link)))
+
+			except:
+				print("获取POC详情失败")
+
+			return
+
 		if self.args.url:
 			Targets = [self.args.url]
 		else:
@@ -222,24 +238,30 @@ class MyPoC:
 		else:
 			max_threads = 5
 
-		total = len(Targets)
+		self.targets = len(Targets)
 
-		if self.args.poc not in self.get_pocs():
-			print("不存在poc: "+self.args.poc)
+		self.pocs = self.poc_laod()
+
+		self.total = self.targets * len(self.pocs)
+
+		if self.pocs == []:
+			print("未找到POC")
 			return
 
 		self.config_update(action="change")
 
 		# 创建线程并启动，控制最大线程数
 		threads = []
-		for Target in Targets:
-			
-			while threading.active_count() >= max_threads:
-				pass  # 等待，直到线程数小于最大线程数
 
-			thread = threading.Thread(target=self.payloading, args=(self.args.poc, Target, total))
-			threads.append(thread)
-			thread.start()
+		for Target in Targets:
+			self.results[Target] = {}
+			for poc in self.pocs:
+				while threading.active_count() >= max_threads:
+					pass  # 等待，直到线程数小于最大线程数
+
+				thread = threading.Thread(target=self.payloading, args=(poc, Target))
+				threads.append(thread)
+				thread.start()
 
 		# 等待所有线程结束
 		for thread in threads:
@@ -249,13 +271,14 @@ class MyPoC:
 		delta = stop_time - start_time
 		minutes, seconds = divmod(delta.total_seconds(), 60)
 
-		print(f"\n测试URL: {total}  漏洞URL: {self.vul_count}  耗时: {int(minutes)}分{int(seconds)}秒")
+		print(f"\n测试URL: {self.targets}  测试POC: {len(self.pocs)}  漏洞个数: {self.vul_count}  耗时: {int(minutes)}分{int(seconds)}秒")
 
 		self.config_update(action="recover")
 
 		if self.args.filetype:
 			
-			self.result_save()
+			result_save.Result_save(self.results,self.args.filetype)
+
 
 
 if __name__ == '__main__':
