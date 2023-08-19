@@ -32,6 +32,8 @@ python MyPoC.py -f target.txt -p "用友NC BeanShell RCE(CNVD-2021-30167)"
 python MyPoC.py -h
 ```
 
+![image-20230819171535607](img/image-20230819171535607.png)
+
 
 
 ## 待开发功能
