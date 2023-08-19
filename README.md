@@ -24,6 +24,8 @@ python MyPoC.py -u "https://www.example.com" -p "用友NC BeanShell RCE(CNVD-202
 python MyPoC.py -f target.txt -p "用友NC BeanShell RCE(CNVD-2021-30167)"
 ```
 
+![image-20230819234344632](img/image-20230819234344632.png)
+
 
 
 其他参数的使用请参考工具的帮助信息
