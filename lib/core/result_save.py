@@ -2,6 +2,7 @@ from datetime import datetime
 import importlib
 import os
 import re
+import sys
 
 
 
@@ -36,7 +37,13 @@ def type_html(results, file_path, current_time):
 
 	html = ""
 
-	HTML = open("C:/Users/zhangsan9527/Desktop/MyPoC/config/results model.html", "r", encoding="utf-8").read()
+	# windows系统
+	if sys.platform == 'win32':
+		HTML = open("./config/results model.html", "r", encoding="utf-8").read()
+
+	# 其他系统，包括linux、mac
+	else:
+		HTML = open("./config/results model.html", "r", encoding="utf-8").read()
 
 	REFERENCE_link = ""
 
@@ -69,7 +76,6 @@ def type_html(results, file_path, current_time):
 	file_text = re.sub(r'  <li class="item">(.*?)  </li>', html, HTML, flags=re.DOTALL)
 
 	file_save(file_path, file_text)
-
 
 
 def type_excel():
@@ -105,3 +111,4 @@ def Result_save(results,filetype):
 		file_path = os.path.join(folder_path, f"{current_time[1]}.xlsx")
 
 		type_excel()
+
